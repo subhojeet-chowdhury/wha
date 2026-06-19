@@ -75,10 +75,10 @@ const initialState: DemoState = {
   },
   auditLog: [],
   kpis: {
-    changesPending: 1, // Lucas' transaction is pending initially
-    changesRejected: 0,
-    changesPastCutoff: 0,
-    sodChecksPassed: 1
+    changesPending: 156,
+    changesRejected: 12,
+    changesPastCutoff: 3,
+    sodChecksPassed: 893
   },
   employeeComms: {
     letterGenerated: false,
@@ -202,7 +202,7 @@ export const DemoProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         employeeComms: { ...prev.employeeComms, paySimulatorResponses: [...prev.employeeComms.paySimulatorResponses, response] }
       };
     });
-    logAction('Oracle Pay Simulator', 'Chat Response', 'Modeled upcoming payslip metrics dynamically for Lucas.');
+    logAction('Oracle Pay Assistant', 'Chat Response', 'Modeled upcoming payslip metrics dynamically for Lucas.');
   };
 
   const resetDemo = () => {

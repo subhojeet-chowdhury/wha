@@ -37,7 +37,7 @@ export default function PayrollTab() {
     }, 150);
   };
 
-  const handleAcceptSimulation = () => {
+  const handleAcceptCalculation = () => {
     setShowProrationModal(false);
     resolveProrationException();
   };
@@ -206,8 +206,8 @@ export default function PayrollTab() {
                 <button onClick={() => setShowProrationModal(false)} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded font-medium hover:bg-gray-200">
                   Close Review
                 </button>
-                <button onClick={handleAcceptSimulation} className="flex-2 px-4 py-2 bg-blue-600 text-white rounded font-medium shadow-sm hover:bg-blue-700">
-                  Accept AI Simulation
+                <button onClick={handleAcceptCalculation} className="flex-2 px-4 py-2 bg-blue-600 text-white rounded font-medium shadow-sm hover:bg-blue-700">
+                  Accept AI Calculation
                 </button>
               </div>
             </div>

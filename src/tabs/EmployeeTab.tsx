@@ -14,7 +14,7 @@ export default function EmployeeTab() {
   // Mobile Frame styling
   const PhoneFrame = ({ children, headerTitle }: { children: React.ReactNode, headerTitle: string }) => (
     <div className="flex justify-center py-8 bg-gray-100 min-h-screen">
-      <div className="w-[375px] h-[812px] bg-white rounded-[3rem] shadow-2xl border-[8px] border-gray-900 overflow-hidden relative flex flex-col">
+      <div className="w-[375px] h-[650px] bg-white rounded-[3rem] shadow-2xl border-[8px] border-gray-900 overflow-hidden relative flex flex-col">
         {/* iOS Notch Area */}
         <div className="h-7 w-full bg-black absolute top-0 left-0 right-0 z-50 flex justify-center rounded-b-xl px-4">
            <div className="w-1/3 h-full bg-black rounded-b-3xl"></div>
@@ -90,10 +90,10 @@ export default function EmployeeTab() {
     );
   }
 
-  // View: Pay Simulator Chat
+  // View: Pay Assistant Chat
   if (view === 'chat') {
     return (
-      <PhoneFrame headerTitle="Pay Simulator">
+      <PhoneFrame headerTitle="Pay Assistant">
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
            {/* Welcome message */}
            <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none p-3 max-w-[85%] shadow-sm ml-2">
@@ -193,7 +193,7 @@ export default function EmployeeTab() {
           </button>
         </div>
 
-        {/* Pay Simulator Entry Point */}
+        {/* Pay Assistant Entry Point */}
         <button 
           onClick={() => {
             if (state.employeeComms.paySimulatorResponses.length === 0) {
@@ -208,7 +208,7 @@ export default function EmployeeTab() {
               <MessageCircle className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-bold text-sm">Pay Simulator</div>
+              <div className="font-bold text-sm">Pay Assistant</div>
               <div className="text-xs text-indigo-100 mt-0.5">Model your net take-home pay</div>
             </div>
           </div>

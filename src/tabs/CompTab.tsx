@@ -20,15 +20,10 @@ export default function CompTab() {
 
   return (
     <div className="flex flex-col items-center py-8">
-      <div className="flex items-center text-gray-500 mb-6 text-sm">
-        <Smartphone className="w-4 h-4 mr-2" />
-        Simulated Mobile Dashboard Display
-      </div>
-
       <div className="w-[360px] bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
         {/* Mobile Header */}
         <div className="bg-[#C74634] text-white px-4 py-3 flex items-center justify-between">
-          <div className="text-xs opacity-80">Oracle Approvals</div>
+          <div className="text-xs opacity-80">Approvals</div>
           <div className="text-sm font-semibold">1 Pending</div>
         </div>
 
