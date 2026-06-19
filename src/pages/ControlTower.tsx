@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Filter, Search, MoreHorizontal, AlertCircle, CheckCircle, Clock, ArrowUpRight, MessageSquare, Plus, FileText, ChevronDown } from 'lucide-react';
+import { Filter, Search, MoreHorizontal, AlertCircle, CheckCircle, Clock, ArrowUpRight, MessageSquare, Plus, FileText, ChevronDown, Sparkles } from 'lucide-react';
 import Infolet from '../components/ui/Infolet';
 
 // Mock Data
@@ -16,6 +16,8 @@ const EXCEPTION_DATA_INIT = [
     severity: 'High',
     status: 'New',
     pendingWith: 'Manager',
+    employeeDetails: { title: 'Senior Marketing Executive', department: 'Marketing', hireDate: '24 Aug 2020', costCenter: 'CC-MKTG-UK' },
+    payrollDetails: { baseSalary: '£85,000 p.a.', ytdEarnings: '£35,416.65', taxCode: '1257L', paymentMethod: 'BACS' },
     aiInsights: {
       summary: 'Base pay increased by 15% without a corresponding promotion or compensation change event in the core HR system.',
       rootCause: 'Manual override detected in time-tracking integration file.',
@@ -34,6 +36,8 @@ const EXCEPTION_DATA_INIT = [
     severity: 'Critical',
     status: 'In Progress',
     pendingWith: 'Employee',
+    employeeDetails: { title: 'Data Scientist', department: 'Analytics', hireDate: '15 Jan 2025', costCenter: 'CC-ANLY-SG' },
+    payrollDetails: { baseSalary: 'SGD 120,000 p.a.', ytdEarnings: 'SGD 50,000.00', taxCode: 'N/A (Standard)', paymentMethod: 'Pending Bank Setup' },
     aiInsights: {
       summary: 'Banking information was recently updated but rejected by the validation gateway.',
       rootCause: 'Invalid routing number format for the specified bank branch.',
@@ -52,6 +56,8 @@ const EXCEPTION_DATA_INIT = [
     severity: 'Medium',
     status: 'Fixed',
     pendingWith: 'System',
+    employeeDetails: { title: 'Project Manager', department: 'Operations', hireDate: '02 Mar 2019', costCenter: 'CC-OPS-FR' },
+    payrollDetails: { baseSalary: '€75,000 p.a.', ytdEarnings: '€31,250.00', taxCode: 'Non-Cadre', paymentMethod: 'SEPA Transfer' },
     aiInsights: {
       summary: 'Transport allowance configured at €150, but regional max is €80 for this grade.',
       rootCause: 'Legacy policy code FR_TECH_TR_01 applied instead of updated policy.',
@@ -70,6 +76,8 @@ const EXCEPTION_DATA_INIT = [
     severity: 'High',
     status: 'Escalated',
     pendingWith: 'Payroll',
+    employeeDetails: { title: 'Sales Director', department: 'Sales', hireDate: '10 Nov 2018', costCenter: 'CC-SALS-US' },
+    payrollDetails: { baseSalary: '$160,000 p.a.', ytdEarnings: '$66,666.65', taxCode: 'W-4 M/2', paymentMethod: 'ACH Deposit' },
     aiInsights: {
       summary: 'Employee moved to a new state mid-pay period, but tax deductions are entirely calculated on the previous state.',
       rootCause: 'Effective date of address change does not align with the payroll cut-off.',
@@ -88,6 +96,8 @@ const EXCEPTION_DATA_INIT = [
     severity: 'Critical',
     status: 'New',
     pendingWith: 'HR',
+    employeeDetails: { title: 'Game Developer', department: 'Gaming', hireDate: '01 Apr 2022', costCenter: 'CC-GAME-JP' },
+    payrollDetails: { baseSalary: '¥9,500,000 p.a.', ytdEarnings: '¥3,958,333', taxCode: 'Kou (甲)', paymentMethod: 'Domestic Bank Transfer' },
     aiInsights: {
       summary: 'Reported overtime is 52 hours. Japanese labor law caps standard overtime at 45 hours without special agreement.',
       rootCause: 'Project delivery milestone caused team-wide excess hours. Special 36 agreement documentation not detected.',
@@ -106,6 +116,8 @@ const EXCEPTION_DATA_INIT = [
     severity: 'Medium',
     status: 'In Progress',
     pendingWith: 'Manager',
+    employeeDetails: { title: 'Customer Success Manager', department: 'Support', hireDate: '14 Jul 2023', costCenter: 'CC-CS-ES' },
+    payrollDetails: { baseSalary: '€55,000 p.a.', ytdEarnings: '€22,916.65', taxCode: 'IRPF 18%', paymentMethod: 'SEPA Transfer' },
     aiInsights: {
       summary: 'Performance bonus of €2000 was submitted both via the annual compensation cycle and a manual ad-hoc request.',
       rootCause: 'Manager submitted manual form despite automated cycle processing.',
@@ -153,18 +165,31 @@ export default function ControlTower() {
     setCommentText('');
   };
 
-  const handleEscalate = () => {
+  const handleEscalateTo = (dept: string) => {
     if (!selectedException) return;
     
-    const comment = commentText.trim() ? `Escalated to Level 2 with note: ${commentText}` : 'Escalated to Level 2 for further review';
+    const comment = commentText.trim() ? `Escalated to ${dept} with note: ${commentText}` : `Escalated to ${dept} for further processing`;
     setActionHistory([...actionHistory, { user: 'Current User', time: new Date().toLocaleString(), comment }]);
     
     setExceptions(prev => prev.map(ex => 
-      ex.id === selectedException.id ? { ...ex, status: 'Escalated', pendingWith: 'Level 2 Support' } : ex
+      ex.id === selectedException.id ? { ...ex, status: 'Escalated', pendingWith: dept } : ex
     ));
     
-    setSelectedException({ ...selectedException, status: 'Escalated', pendingWith: 'Level 2 Support' });
+    setSelectedException({ ...selectedException, status: 'Escalated', pendingWith: dept });
     setCommentText('');
+  };
+
+  const handleExportReport = () => {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Exception ID,Employee Name,Employee No,Country,Phase,Severity,Status,Pending With\n"
+      + exceptions.map(e => `${e.id},${e.name},${e.empNo},${e.country},${e.phase},${e.severity},${e.status},${e.pendingWith}`).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `payroll_exceptions_${selectedPeriod.replace(' ', '_')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const openActionModal = (item: typeof EXCEPTION_DATA_INIT[0]) => {
@@ -204,28 +229,28 @@ export default function ControlTower() {
   return (
     <div className="flex-1 bg-gray-50 flex flex-col min-h-full">
       {/* Pay Period Banner */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
+      <div className="bg-orange-600 border-b border-orange-700 px-6 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-semibold text-gray-800">Payroll Exception Control Tower</h1>
-          <div className="h-6 w-px bg-gray-300"></div>
+          <h1 className="text-xl font-semibold text-white">Payroll Exception Control Tower</h1>
+          <div className="h-6 w-px bg-orange-400"></div>
           <div className="flex items-center text-sm">
-            <span className="text-gray-500 mr-2">Pay Period:</span>
+            <span className="text-orange-50 mr-2 font-medium">Pay Period:</span>
             <div className="relative">
               <select 
                 value={selectedPeriod} 
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="appearance-none bg-gray-100 border border-gray-200 text-gray-700 py-1.5 pl-3 pr-8 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="appearance-none bg-orange-700 border border-orange-500 text-white py-1.5 pl-3 pr-8 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-white"
               >
                 <option>June 2026</option>
                 <option>May 2026</option>
                 <option>April 2026</option>
               </select>
-              <ChevronDown className="w-4 h-4 text-gray-500 absolute right-2 top-2 pointer-events-none" />
+              <ChevronDown className="w-4 h-4 text-orange-200 absolute right-2 top-2 pointer-events-none" />
             </div>
           </div>
         </div>
         <div className="flex items-center space-x-3">
-           <button className="bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors flex items-center">
+           <button onClick={handleExportReport} className="bg-white border border-transparent text-orange-700 px-3 py-1.5 rounded-md text-sm font-medium hover:bg-orange-50 transition-colors flex items-center shadow-sm">
              <FileText className="w-4 h-4 mr-2" />
              Export Report
            </button>
@@ -392,12 +417,14 @@ export default function ControlTower() {
                   </div>
                 </div>
               </div>
-              <button 
-                onClick={() => setSelectedException(null)}
-                className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
-              >
-                &times;
-              </button>
+              <div>
+                <button 
+                  onClick={() => setSelectedException(null)}
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  &times;
+                </button>
+              </div>
             </div>
 
             {/* Modal Body */}
@@ -406,6 +433,45 @@ export default function ControlTower() {
               {/* Left Column: Data & AI Insights */}
               <div className="flex-1 space-y-6">
                 
+                  {/* Employee & Payroll Information */}
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide border-b border-gray-100 pb-2 mb-3">Employee & Payroll Information</h3>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-4 gap-x-4 text-sm">
+                    <div>
+                      <span className="block text-gray-500 text-xs mb-0.5">Job Title</span>
+                      <span className="font-medium text-gray-900">{selectedException.employeeDetails.title}</span>
+                    </div>
+                    <div>
+                      <span className="block text-gray-500 text-xs mb-0.5">Department</span>
+                      <span className="font-medium text-gray-900">{selectedException.employeeDetails.department}</span>
+                    </div>
+                    <div>
+                      <span className="block text-gray-500 text-xs mb-0.5">Base Salary</span>
+                      <span className="font-medium text-gray-900">{selectedException.payrollDetails.baseSalary}</span>
+                    </div>
+                    <div>
+                      <span className="block text-gray-500 text-xs mb-0.5">YTD Earnings</span>
+                      <span className="font-medium text-gray-900">{selectedException.payrollDetails.ytdEarnings}</span>
+                    </div>
+                    <div>
+                      <span className="block text-gray-500 text-xs mb-0.5">Hire Date</span>
+                      <span className="font-medium text-gray-900">{selectedException.employeeDetails.hireDate}</span>
+                    </div>
+                    <div>
+                      <span className="block text-gray-500 text-xs mb-0.5">Cost Center</span>
+                      <span className="font-medium text-gray-900">{selectedException.employeeDetails.costCenter}</span>
+                    </div>
+                    <div>
+                      <span className="block text-gray-500 text-xs mb-0.5">Tax Code</span>
+                      <span className="font-medium text-gray-900">{selectedException.payrollDetails.taxCode}</span>
+                    </div>
+                    <div>
+                      <span className="block text-gray-500 text-xs mb-0.5">Payment Method</span>
+                      <span className="font-medium text-gray-900">{selectedException.payrollDetails.paymentMethod}</span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Context Card */}
                 <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
                   <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide border-b border-gray-100 pb-2 mb-3">Context</h3>
@@ -433,15 +499,26 @@ export default function ControlTower() {
                 </div>
 
                 {/* AI Insights Card */}
-                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg border border-indigo-100 shadow-sm p-5 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-3 opacity-10">
-                    <AlertCircle className="w-24 h-24" />
+                <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 rounded-lg border border-indigo-100 shadow-sm p-5 relative overflow-hidden group">
+                  {/* Modern AI Twinkling Stars Background Elements */}
+                  <div className="absolute top-2 right-4 opacity-40 group-hover:opacity-100 transition-opacity duration-700">
+                    <Sparkles className="w-5 h-5 text-indigo-500 animate-pulse" />
                   </div>
+                  <div className="absolute top-8 right-12 opacity-30 group-hover:opacity-80 transition-opacity duration-700 delay-150">
+                    <Sparkles className="w-3 h-3 text-purple-500 animate-bounce" style={{ animationDuration: '3s' }} />
+                  </div>
+                  <div className="absolute top-4 right-20 opacity-20 group-hover:opacity-60 transition-opacity duration-500 delay-75">
+                    <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" style={{ animationDuration: '2.5s' }} />
+                  </div>
+                  <div className="absolute bottom-4 right-6 opacity-30 group-hover:opacity-70 transition-opacity duration-700 delay-300">
+                    <Sparkles className="w-4 h-4 text-fuchsia-400 animate-pulse" style={{ animationDuration: '4s' }} />
+                  </div>
+                  
                   <div className="flex items-center space-x-2 mb-4 relative z-10">
-                    <div className="bg-indigo-600 p-1.5 rounded-md">
-                      <AlertCircle className="w-4 h-4 text-white" />
+                    <div className="bg-gradient-to-br from-indigo-600 to-purple-600 p-1.5 rounded-md shadow-sm">
+                      <Sparkles className="w-4 h-4 text-white" />
                     </div>
-                    <h3 className="text-base font-semibold text-indigo-900">Oracle AI Insights</h3>
+                    <h3 className="text-base font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-900 to-purple-800">Oracle AI Insights</h3>
                   </div>
                   
                   <div className="space-y-4 relative z-10 text-sm">
@@ -469,6 +546,25 @@ export default function ControlTower() {
               {/* Right Column: Collaboration & Action */}
               <div className="w-full lg:w-80 flex flex-col space-y-4">
                 
+                {/* Escalation Actions */}
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Targeted Escalations</h3>
+                  <div className="flex flex-col space-y-2">
+                    <button onClick={() => handleEscalateTo('HR')} className="w-full bg-orange-50 border border-orange-200 text-orange-700 py-1.5 rounded-md text-sm font-medium hover:bg-orange-100 transition-colors shadow-sm flex items-center justify-center">
+                      <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
+                      Escalate to HR
+                    </button>
+                    <button onClick={() => handleEscalateTo('Finance')} className="w-full bg-orange-50 border border-orange-200 text-orange-700 py-1.5 rounded-md text-sm font-medium hover:bg-orange-100 transition-colors shadow-sm flex items-center justify-center">
+                      <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
+                      Escalate to Finance
+                    </button>
+                    <button onClick={() => handleEscalateTo('Manager')} className="w-full bg-orange-50 border border-orange-200 text-orange-700 py-1.5 rounded-md text-sm font-medium hover:bg-orange-100 transition-colors shadow-sm flex items-center justify-center">
+                      <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
+                      Escalate to Manager
+                    </button>
+                  </div>
+                </div>
+
                 {/* Action History */}
                 <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 flex-1 flex flex-col min-h-[250px]">
                   <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide border-b border-gray-100 pb-2 mb-3 flex items-center justify-between">
@@ -504,7 +600,7 @@ export default function ControlTower() {
                         Resolve
                       </button>
                     </div>
-                    <button onClick={handleEscalate} disabled={selectedException.status === 'Escalated'} className="w-full bg-white border border-red-200 text-red-600 py-1.5 rounded-md text-sm font-medium hover:bg-red-50 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button onClick={() => handleEscalateTo('Level 2')} disabled={selectedException.status === 'Escalated'} className="w-full bg-white border border-red-200 text-red-600 py-1.5 rounded-md text-sm font-medium hover:bg-red-50 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
                       <AlertCircle className="w-4 h-4 mr-1.5" />
                       Escalate to Level 2
                     </button>
