@@ -1,6 +1,55 @@
 import React, { useState } from 'react';
-import { Filter, Search, MoreHorizontal, AlertCircle, CheckCircle, Clock, ArrowUpRight, MessageSquare, Plus, FileText, ChevronDown, Sparkles } from 'lucide-react';
+import { Filter, Search, MoreHorizontal, AlertCircle, CheckCircle, Clock, ArrowUpRight, MessageSquare, Plus, FileText, ChevronDown, Sparkles, TrendingUp, BarChart2 } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } from 'recharts';
 import Infolet from '../components/ui/Infolet';
+
+// Recharts Dummy Data
+const TREND_DATA = [
+  { name: 'Jan', exceptions: 120, resolved: 110 },
+  { name: 'Feb', exceptions: 132, resolved: 125 },
+  { name: 'Mar', exceptions: 101, resolved: 98 },
+  { name: 'Apr', exceptions: 145, resolved: 130 },
+  { name: 'May', exceptions: 90, resolved: 85 },
+  { name: 'Jun', exceptions: 136, resolved: 50 },
+];
+
+const TREND_DATA_PERIOD = [
+  { name: 'Week 1', exceptions: 20, resolved: 18 },
+  { name: 'Week 2', exceptions: 25, resolved: 20 },
+  { name: 'Week 3', exceptions: 45, resolved: 40 },
+  { name: 'Week 4', exceptions: 46, resolved: 22 },
+];
+
+const SEVERITY_DATA = [
+  { name: 'Critical', value: 12 },
+  { name: 'High', value: 34 },
+  { name: 'Medium', value: 50 },
+  { name: 'Low', value: 40 },
+];
+
+const SEVERITY_DATA_PERIOD = [
+  { name: 'Critical', value: 2 },
+  { name: 'High', value: 10 },
+  { name: 'Medium', value: 15 },
+  { name: 'Low', value: 5 },
+];
+
+const COUNTRY_DATA = [
+  { name: 'UK', exceptions: 85 },
+  { name: 'USA', exceptions: 120 },
+  { name: 'Japan', exceptions: 45 },
+  { name: 'India', exceptions: 90 },
+];
+
+const COUNTRY_DATA_PERIOD = [
+  { name: 'UK', exceptions: 15 },
+  { name: 'USA', exceptions: 30 },
+  { name: 'Japan', exceptions: 10 },
+  { name: 'India', exceptions: 25 },
+];
+
+const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6'];
+const BAR_COLOR = '#8b5cf6';
 
 // Mock Data
 const EXCEPTION_DATA_INIT = [
@@ -128,8 +177,11 @@ const EXCEPTION_DATA_INIT = [
 
 export default function ControlTower() {
   const [exceptions, setExceptions] = useState(EXCEPTION_DATA_INIT);
+  const [activeMainTab, setActiveMainTab] = useState<'queue' | 'analytics'>('queue');
+  const [analyticsPeriod, setAnalyticsPeriod] = useState('YTD');
   const [selectedPeriod, setSelectedPeriod] = useState('June 2026');
   const [selectedException, setSelectedException] = useState<typeof EXCEPTION_DATA_INIT[0] | null>(null);
+  const [activeModalTab, setActiveModalTab] = useState<'investigation' | 'dataIntegrity'>('investigation');
   const [filterCountry, setFilterCountry] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -258,8 +310,26 @@ export default function ControlTower() {
       </div>
 
       <div className="p-6 flex-1 flex flex-col max-w-[1400px] mx-auto w-full">
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        {/* Main Tabs */}
+        <div className="flex space-x-6 border-b border-gray-200 mb-6">
+          <button 
+            onClick={() => setActiveMainTab('queue')}
+            className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeMainTab === 'queue' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          >
+            Exception Queue
+          </button>
+          <button 
+            onClick={() => setActiveMainTab('analytics')}
+            className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeMainTab === 'analytics' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          >
+            Analytics and Insights
+          </button>
+        </div>
+
+        {activeMainTab === 'queue' ? (
+          <>
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
           <Infolet title="Total Exceptions" value={counts.total.toString()} subtext="Current Cycle" color="purple" />
           <Infolet title="New" value={counts.new.toString()} subtext="Requires Review" color="blue" />
           <Infolet title="In Progress" value={counts.inProgress.toString()} subtext="Under Investigation" color="amber" />
@@ -391,6 +461,133 @@ export default function ControlTower() {
             </div>
           </div>
         </div>
+        </>
+        ) : (
+          <div className="space-y-6">
+             <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-gray-900">Analytics Dashboard</h2>
+                <div className="flex rounded-md shadow-sm" role="group">
+                  <button onClick={() => setAnalyticsPeriod('YTD')} className={`px-4 py-2 text-sm font-medium border rounded-l-lg transition-colors ${analyticsPeriod === 'YTD' ? 'bg-orange-50 text-orange-700 border-orange-200 z-10' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                    Year to Date
+                  </button>
+                  <button onClick={() => setAnalyticsPeriod('Period')} className={`px-4 py-2 text-sm font-medium border-t border-b border-r rounded-r-lg transition-colors ${analyticsPeriod === 'Period' ? 'bg-orange-50 text-orange-700 border-orange-200 z-10' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
+                    Current Period
+                  </button>
+                </div>
+             </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Trend Chart */}
+              <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-semibold text-gray-900 flex items-center">
+                    <TrendingUp className="w-4 h-4 mr-2 text-indigo-500" />
+                    {analyticsPeriod === 'YTD' ? 'YTD' : 'Current Period'} Exception Trend
+                  </h3>
+                  <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded">{analyticsPeriod === 'YTD' ? '2026' : selectedPeriod}</span>
+                </div>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={analyticsPeriod === 'YTD' ? TREND_DATA : TREND_DATA_PERIOD} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorExceptions" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#f97316" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorResolved" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                      <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                      <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }}/>
+                      <Area type="monotone" dataKey="exceptions" name="Total Exceptions" stroke="#f97316" fillOpacity={1} fill="url(#colorExceptions)" />
+                      <Area type="monotone" dataKey="resolved" name="Resolved" stroke="#10b981" fillOpacity={1} fill="url(#colorResolved)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Severity Pie Chart */}
+              <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-semibold text-gray-900 flex items-center">
+                    <BarChart2 className="w-4 h-4 mr-2 text-orange-500" />
+                    Severity Breakdown
+                  </h3>
+                  <span className="text-xs font-medium bg-indigo-50 text-indigo-700 px-2 py-1 rounded">{analyticsPeriod === 'YTD' ? 'YTD' : selectedPeriod}</span>
+                </div>
+                <div className="h-64 w-full flex items-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={analyticsPeriod === 'YTD' ? SEVERITY_DATA : SEVERITY_DATA_PERIOD}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {(analyticsPeriod === 'YTD' ? SEVERITY_DATA : SEVERITY_DATA_PERIOD).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                      <Legend iconType="circle" layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{ fontSize: '12px' }}/>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Regional Exceptions Bar Chart */}
+              <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-semibold text-gray-900 flex items-center">
+                    <BarChart2 className="w-4 h-4 mr-2 text-indigo-500" />
+                    Regional Exceptions
+                  </h3>
+                  <span className="text-xs font-medium bg-indigo-50 text-indigo-700 px-2 py-1 rounded">{analyticsPeriod === 'YTD' ? 'YTD' : selectedPeriod}</span>
+                </div>
+                <div className="h-64 w-full flex items-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={analyticsPeriod === 'YTD' ? COUNTRY_DATA : COUNTRY_DATA_PERIOD} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f3f4f6" />
+                      <XAxis type="number" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis dataKey="name" type="category" fontSize={12} tickLine={false} axisLine={false} width={50} />
+                      <Tooltip cursor={{fill: '#f3f4f6'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                      <Bar dataKey="exceptions" name="Total Exceptions" fill={BAR_COLOR} radius={[0, 4, 4, 0]} barSize={20} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Insights List */}
+              <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+                <div className="flex items-center mb-4">
+                  <Sparkles className="w-5 h-5 mr-2 text-indigo-500" />
+                  <h3 className="text-base font-semibold text-gray-900">Oracle AI Insights Summary</h3>
+                </div>
+                <div className="grid grid-cols-1 gap-4 h-64 overflow-y-auto pr-2">
+                   <div className="p-4 bg-orange-50 border border-orange-100 rounded-lg">
+                     <div className="font-semibold text-orange-800 text-sm mb-1">Overtime Variance</div>
+                     <p className="text-orange-900/80 text-sm">{analyticsPeriod === 'YTD' ? 'A consistent 15% month-over-month increase in overtime exceptions detected, mostly in APJ region.' : 'A 24% increase in overtime exceptions detected this cycle, mostly concentrated in the Gaming division (Japan).'}</p>
+                   </div>
+                   <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-lg">
+                     <div className="font-semibold text-emerald-800 text-sm mb-1">Resolution Speed</div>
+                     <p className="text-emerald-900/80 text-sm">{analyticsPeriod === 'YTD' ? 'Overall resolution time improved by 23% this year due to Level 1 Auto-Fix adoption.' : 'Average time to resolve exceptions has decreased by 1.2 days compared to Q1, thanks to Auto-Fix rules.'}</p>
+                   </div>
+                   <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg">
+                     <div className="font-semibold text-blue-800 text-sm mb-1">Tax Code Updates</div>
+                     <p className="text-blue-900/80 text-sm">{analyticsPeriod === 'YTD' ? 'Regulatory changes contributed to 140+ exceptions YTD. Recommend proactive master data checks.' : '14 exceptions related to recent UK tax code changes. Recommend running a bulk validation script.'}</p>
+                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Exception Details Modal */}
@@ -399,30 +596,46 @@ export default function ControlTower() {
           <div className="bg-[#F8F9FA] rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-left">
             
             {/* Modal Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
-              <div className="flex items-center space-x-4">
-                <div className="bg-indigo-100 text-indigo-700 p-2 rounded-lg">
-                  <AlertCircle className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 leading-tight">Exception Details</h2>
-                  <div className="text-sm text-gray-500 flex items-center mt-0.5 space-x-2">
-                    <span className="font-medium text-indigo-600">{selectedException.id}</span>
-                    <span>•</span>
-                    <span>{selectedException.timestamp}</span>
-                    <span>•</span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getStatusColor(selectedException.status)}`}>
-                      {selectedException.status}
-                    </span>
+            <div className="bg-white border-b border-gray-200 px-6 pt-4 flex flex-col shrink-0">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-indigo-100 text-indigo-700 p-2 rounded-lg">
+                    <AlertCircle className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900 leading-tight">Exception Details</h2>
+                    <div className="text-sm text-gray-500 flex items-center mt-0.5 space-x-2">
+                      <span className="font-medium text-indigo-600">{selectedException.id}</span>
+                      <span>•</span>
+                      <span>{selectedException.timestamp}</span>
+                      <span>•</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getStatusColor(selectedException.status)}`}>
+                        {selectedException.status}
+                      </span>
+                    </div>
                   </div>
                 </div>
+                <div>
+                  <button 
+                    onClick={() => setSelectedException(null)}
+                    className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    &times;
+                  </button>
+                </div>
               </div>
-              <div>
+              <div className="flex space-x-6">
                 <button 
-                  onClick={() => setSelectedException(null)}
-                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  onClick={() => setActiveModalTab('investigation')} 
+                  className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeModalTab === 'investigation' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
                 >
-                  &times;
+                  Investigation Overview
+                </button>
+                <button 
+                  onClick={() => setActiveModalTab('dataIntegrity')}
+                  className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeModalTab === 'dataIntegrity' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                >
+                  Payroll Data Integrity
                 </button>
               </div>
             </div>
@@ -432,9 +645,10 @@ export default function ControlTower() {
               
               {/* Left Column: Data & AI Insights */}
               <div className="flex-1 space-y-6">
-                
-                  {/* Employee & Payroll Information */}
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+                {activeModalTab === 'investigation' ? (
+                  <>
+                    {/* Employee & Payroll Information */}
+                    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
                   <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide border-b border-gray-100 pb-2 mb-3">Employee & Payroll Information</h3>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-4 gap-x-4 text-sm">
                     <div>
@@ -540,74 +754,144 @@ export default function ControlTower() {
                     </div>
                   </div>
                 </div>
-
+              </>
+            ) : (
+                  <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+                     <div className="flex justify-between items-center mb-4">
+                       <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Payroll Line Items Variance</h3>
+                       <button className="bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-xs font-medium hover:bg-gray-50 flex items-center">
+                         <FileText className="w-3.5 h-3.5 mr-1.5" />
+                         Download Data
+                       </button>
+                     </div>
+                     <div className="overflow-x-auto rounded border border-gray-200">
+                        <table className="w-full text-left text-sm whitespace-nowrap">
+                           <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
+                             <tr>
+                               <th className="px-4 py-3">Pay Element</th>
+                               <th className="px-4 py-3">Previous Period</th>
+                               <th className="px-4 py-3">Current Processing</th>
+                               <th className="px-4 py-3">Variance</th>
+                               <th className="px-4 py-3">Status</th>
+                             </tr>
+                           </thead>
+                           <tbody className="divide-y divide-gray-200">
+                             <tr>
+                               <td className="px-4 py-3 font-medium text-gray-900">Base Salary</td>
+                               <td className="px-4 py-3 text-gray-600">£7,083.33</td>
+                               <td className="px-4 py-3 text-gray-600">£7,083.33</td>
+                               <td className="px-4 py-3 text-gray-600">£0.00</td>
+                               <td className="px-4 py-3"><span className="text-green-700 font-medium text-xs bg-green-50 border border-green-200 px-2 py-0.5 rounded">Match</span></td>
+                             </tr>
+                             <tr>
+                               <td className="px-4 py-3 font-medium text-gray-900">Overtime</td>
+                               <td className="px-4 py-3 text-gray-600">£0.00</td>
+                               <td className="px-4 py-3 text-gray-600">£450.00</td>
+                               <td className="px-4 py-3 font-medium text-orange-600">+£450.00</td>
+                               <td className="px-4 py-3"><span className="text-orange-700 font-medium text-xs bg-orange-50 border border-orange-200 px-2 py-0.5 rounded">Variance</span></td>
+                             </tr>
+                             <tr>
+                               <td className="px-4 py-3 font-medium text-gray-900">Bonus</td>
+                               <td className="px-4 py-3 text-gray-600">£0.00</td>
+                               <td className="px-4 py-3 text-gray-600">£0.00</td>
+                               <td className="px-4 py-3 text-gray-600">£0.00</td>
+                               <td className="px-4 py-3"><span className="text-green-700 font-medium text-xs bg-green-50 border border-green-200 px-2 py-0.5 rounded">Match</span></td>
+                             </tr>
+                             <tr>
+                               <td className="px-4 py-3 font-medium text-gray-900">Tax Deduction</td>
+                               <td className="px-4 py-3 text-gray-600">£1,420.00</td>
+                               <td className="px-4 py-3 text-gray-600">£1,510.00</td>
+                               <td className="px-4 py-3 font-medium text-orange-600">+£90.00</td>
+                               <td className="px-4 py-3"><span className="text-orange-700 font-medium text-xs bg-orange-50 border border-orange-200 px-2 py-0.5 rounded">Variance</span></td>
+                             </tr>
+                             <tr>
+                               <td className="px-4 py-3 font-medium text-gray-900">Pension</td>
+                               <td className="px-4 py-3 text-gray-600">£354.16</td>
+                               <td className="px-4 py-3 text-gray-600">£354.16</td>
+                               <td className="px-4 py-3 text-gray-600">£0.00</td>
+                               <td className="px-4 py-3"><span className="text-green-700 font-medium text-xs bg-green-50 border border-green-200 px-2 py-0.5 rounded">Match</span></td>
+                             </tr>
+                             <tr>
+                               <td className="px-4 py-3 font-medium text-gray-900 border-t-2">Net Pay</td>
+                               <td className="px-4 py-3 text-gray-600 border-t-2 font-medium">£5,309.17</td>
+                               <td className="px-4 py-3 text-gray-600 border-t-2 font-medium">£5,669.17</td>
+                               <td className="px-4 py-3 font-medium text-orange-600 border-t-2">+£360.00</td>
+                               <td className="px-4 py-3 border-t-2"><span className="text-orange-700 font-medium text-xs bg-orange-50 border border-orange-200 px-2 py-0.5 rounded">Variance</span></td>
+                             </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                  </div>
+                )}
               </div>
 
               {/* Right Column: Collaboration & Action */}
-              <div className="w-full lg:w-80 flex flex-col space-y-4">
-                
-                {/* Escalation Actions */}
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Targeted Escalations</h3>
-                  <div className="flex flex-col space-y-2">
-                    <button onClick={() => handleEscalateTo('HR')} className="w-full bg-orange-50 border border-orange-200 text-orange-700 py-1.5 rounded-md text-sm font-medium hover:bg-orange-100 transition-colors shadow-sm flex items-center justify-center">
-                      <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
-                      Escalate to HR
-                    </button>
-                    <button onClick={() => handleEscalateTo('Finance')} className="w-full bg-orange-50 border border-orange-200 text-orange-700 py-1.5 rounded-md text-sm font-medium hover:bg-orange-100 transition-colors shadow-sm flex items-center justify-center">
-                      <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
-                      Escalate to Finance
-                    </button>
-                    <button onClick={() => handleEscalateTo('Manager')} className="w-full bg-orange-50 border border-orange-200 text-orange-700 py-1.5 rounded-md text-sm font-medium hover:bg-orange-100 transition-colors shadow-sm flex items-center justify-center">
-                      <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
-                      Escalate to Manager
-                    </button>
-                  </div>
-                </div>
-
-                {/* Action History */}
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 flex-1 flex flex-col min-h-[250px]">
-                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide border-b border-gray-100 pb-2 mb-3 flex items-center justify-between">
-                    <span>Audit Trail</span>
-                  </h3>
+              {activeModalTab === 'investigation' && (
+                <div className="w-full lg:w-80 flex flex-col space-y-4">
                   
-                  <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-                    {actionHistory.map((item, idx) => (
-                      <div key={idx} className="relative pl-4 border-l-2 border-gray-200">
-                        <div className="absolute w-2 h-2 bg-gray-300 rounded-full -left-[5px] top-1.5"></div>
-                        <div className="text-xs text-gray-500 font-medium mb-0.5">{item.user} • {item.time}</div>
-                        <div className="text-sm text-gray-700 bg-gray-50 p-2 rounded border border-gray-100">{item.comment}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Action Entry */}
-                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 shrink-0">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Take Action</h3>
-                  <textarea 
-                    placeholder="Add notes or resolution details..."
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    className="w-full text-sm border-gray-300 rounded-md p-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 border min-h-[80px] mb-3 resize-none"
-                  />
-                  <div className="flex flex-col space-y-2">
-                    <div className="flex space-x-2">
-                      <button onClick={handleActionSubmit} className="flex-1 bg-white border border-gray-300 text-gray-700 py-1.5 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">
-                        Add Note
+                  {/* Escalation Actions */}
+                  <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Targeted Escalations</h3>
+                    <div className="flex flex-col space-y-2">
+                      <button onClick={() => handleEscalateTo('HR')} className="w-full bg-orange-50 border border-orange-200 text-orange-700 py-1.5 rounded-md text-sm font-medium hover:bg-orange-100 transition-colors shadow-sm flex items-center justify-center">
+                        <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
+                        Escalate to HR
                       </button>
-                      <button onClick={handleResolve} disabled={selectedException.status === 'Fixed'} className="flex-1 bg-indigo-600 text-white py-1.5 rounded-md text-sm font-medium hover:bg-indigo-700 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                        Resolve
+                      <button onClick={() => handleEscalateTo('Finance')} className="w-full bg-orange-50 border border-orange-200 text-orange-700 py-1.5 rounded-md text-sm font-medium hover:bg-orange-100 transition-colors shadow-sm flex items-center justify-center">
+                        <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
+                        Escalate to Finance
+                      </button>
+                      <button onClick={() => handleEscalateTo('Manager')} className="w-full bg-orange-50 border border-orange-200 text-orange-700 py-1.5 rounded-md text-sm font-medium hover:bg-orange-100 transition-colors shadow-sm flex items-center justify-center">
+                        <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
+                        Escalate to Manager
                       </button>
                     </div>
-                    <button onClick={() => handleEscalateTo('Level 2')} disabled={selectedException.status === 'Escalated'} className="w-full bg-white border border-red-200 text-red-600 py-1.5 rounded-md text-sm font-medium hover:bg-red-50 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
-                      <AlertCircle className="w-4 h-4 mr-1.5" />
-                      Escalate to Level 2
-                    </button>
                   </div>
-                </div>
 
-              </div>
+                  {/* Action History */}
+                  <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 flex-1 flex flex-col min-h-[250px]">
+                    <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide border-b border-gray-100 pb-2 mb-3 flex items-center justify-between">
+                      <span>Audit Trail</span>
+                    </h3>
+                    
+                    <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+                      {actionHistory.map((item, idx) => (
+                        <div key={idx} className="relative pl-4 border-l-2 border-gray-200">
+                          <div className="absolute w-2 h-2 bg-gray-300 rounded-full -left-[5px] top-1.5"></div>
+                          <div className="text-xs text-gray-500 font-medium mb-0.5">{item.user} • {item.time}</div>
+                          <div className="text-sm text-gray-700 bg-gray-50 p-2 rounded border border-gray-100">{item.comment}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Action Entry */}
+                  <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 shrink-0">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2">Take Action</h3>
+                    <textarea 
+                      placeholder="Add notes or resolution details..."
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      className="w-full text-sm border-gray-300 rounded-md p-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 border min-h-[80px] mb-3 resize-none"
+                    />
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex space-x-2">
+                        <button onClick={handleActionSubmit} className="flex-1 bg-white border border-gray-300 text-gray-700 py-1.5 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">
+                          Add Note
+                        </button>
+                        <button onClick={handleResolve} disabled={selectedException.status === 'Fixed'} className="flex-1 bg-indigo-600 text-white py-1.5 rounded-md text-sm font-medium hover:bg-indigo-700 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                          Resolve
+                        </button>
+                      </div>
+                      <button onClick={() => handleEscalateTo('Level 2')} disabled={selectedException.status === 'Escalated'} className="w-full bg-white border border-red-200 text-red-600 py-1.5 rounded-md text-sm font-medium hover:bg-red-50 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                        <AlertCircle className="w-4 h-4 mr-1.5" />
+                        Escalate to Level 2
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              )}
 
             </div>
           </div>
